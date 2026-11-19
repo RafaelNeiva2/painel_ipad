@@ -94,11 +94,20 @@
     titulo: 'Bem-vindos'
   };
 
+  // Cada estação tem vários servidores e formatos; se um falhar, o player tenta o próximo
+  function fontes(canal) {
+    var lista = [], servidores = ['ice1', 'ice2', 'ice4', 'ice6'], formatos = ['128-mp3', '128-aac'];
+    for (var f = 0; f < formatos.length; f++)
+      for (var s = 0; s < servidores.length; s++)
+        lista.push('https://' + servidores[s] + '.somafm.com/' + canal + '-' + formatos[f]);
+    return lista;
+  }
+
   var RADIOS = [
-    { nome: 'Bossa Nova', curto: 'Bossa', url: 'https://ice1.somafm.com/bossa-128-mp3' },
-    { nome: 'Lounge / Downtempo', curto: 'Lounge', url: 'https://ice1.somafm.com/groovesalad-128-mp3' },
-    { nome: 'Jazz moderno', curto: 'Jazz', url: 'https://ice1.somafm.com/sonicuniverse-128-mp3' },
-    { nome: 'Vocal suave', curto: 'Lush', url: 'https://ice1.somafm.com/lush-128-mp3' }
+    { nome: 'Bossa Nova', curto: 'Bossa', urls: fontes('bossa') },
+    { nome: 'Lounge / Downtempo', curto: 'Lounge', urls: fontes('groovesalad') },
+    { nome: 'Jazz moderno', curto: 'Jazz', urls: fontes('sonicuniverse') },
+    { nome: 'Vocal suave', curto: 'Lush', urls: fontes('lush') }
   ];
 
   var DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -206,8 +215,10 @@
   // Rádio
   var audio = $('audio');
   var atual = 0;
+  var fonte = 0;
   var querTocando = false;
   var tentativa = null;
+  var vigia = null;
 
   try { var salvo = parseInt(localStorage.getItem('radio'), 10); if (salvo >= 0 && salvo < RADIOS.length) atual = salvo; } catch (e) {}
 
@@ -222,21 +233,39 @@
 
   function status(txt) { $('radioStatus').textContent = txt; }
 
-  function tocar() {
-    querTocando = true;
-    if (audio.getAttribute('src') !== RADIOS[atual].url) {
-      audio.setAttribute('src', RADIOS[atual].url);
-      audio.load();
-    }
+  function conectar() {
+    clearTimeout(vigia);
+    audio.setAttribute('src', RADIOS[atual].urls[fonte]);
+    audio.load();
     status('Conectando…');
     var p = audio.play();
-    if (p && p.catch) p.catch(function () { status('Toque em ▶ para tocar'); });
+    if (p && p.catch) p.catch(function (e) {
+      if (e && e.name === 'NotAllowedError') status('Toque em ▶ para tocar');
+    });
+    // Se em 12s não começar a tocar, tenta o próximo servidor
+    vigia = setTimeout(function () { if (querTocando && audio.paused) proximaFonte(); }, 12000);
+  }
+
+  function proximaFonte() {
+    clearTimeout(vigia);
+    fonte++;
+    if (fonte < RADIOS[atual].urls.length) { conectar(); return; }
+    fonte = 0;
+    status('Estação fora do ar, tentando de novo em 20s');
+    clearTimeout(tentativa);
+    tentativa = setTimeout(function () { if (querTocando) conectar(); }, 20000);
+  }
+
+  function tocar() {
+    querTocando = true;
     $('tocar').innerHTML = '&#10074;&#10074;';
+    conectar();
   }
 
   function pausar() {
     querTocando = false;
     clearTimeout(tentativa);
+    clearTimeout(vigia);
     audio.pause();
     // Remove a fonte para não acumular atraso no stream ao vivo
     audio.removeAttribute('src');
@@ -247,18 +276,17 @@
 
   function trocar(i) {
     atual = (i + RADIOS.length) % RADIOS.length;
+    fonte = 0;
     try { localStorage.setItem('radio', atual); } catch (e) {}
     desenharEstacoes();
-    if (querTocando) { audio.removeAttribute('src'); tocar(); } else status('Toque para tocar');
+    if (querTocando) conectar(); else status('Toque para tocar');
   }
 
-  audio.addEventListener('playing', function () { status('Tocando agora'); });
+  audio.addEventListener('playing', function () { clearTimeout(vigia); status('Tocando agora'); });
   audio.addEventListener('waiting', function () { if (querTocando) status('Carregando…'); });
   audio.addEventListener('error', function () {
-    if (!querTocando) return;
-    status('Falha na conexão, tentando de novo…');
-    clearTimeout(tentativa);
-    tentativa = setTimeout(function () { audio.removeAttribute('src'); tocar(); }, 5000);
+    if (!querTocando || !audio.getAttribute('src')) return;
+    proximaFonte();
   });
 
   $('tocar').addEventListener('click', function () { querTocando ? pausar() : tocar(); });
