@@ -11,69 +11,163 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: #0e0f12; color: #f2f2f2;
-    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: #070a14; color: #fff;
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
-    overflow: hidden;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
   }
-  .tela { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; height: 100%; padding: 3vh 4vw; }
-  .topo { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; color: #8a8f98; font-size: 2.6vh; letter-spacing: .05em; }
+
+  /* Céu animado: manchas de cor que flutuam devagar */
+  .ceu { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; }
+  .blob { position: absolute; border-radius: 50%; opacity: .6; will-change: transform; -webkit-transition: background 4s; transition: background 4s; }
+  .b1 { width: 80vw; height: 80vw; top: -35vw; left: -20vw; animation: deriva1 38s ease-in-out infinite alternate; }
+  .b2 { width: 75vw; height: 75vw; bottom: -40vw; right: -25vw; animation: deriva2 46s ease-in-out infinite alternate; }
+  .b3 { width: 55vw; height: 55vw; top: 15vh; left: 30vw; opacity: .45; animation: deriva3 54s ease-in-out infinite alternate; }
+  @keyframes deriva1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(14vw, 10vh) scale(1.15); } }
+  @keyframes deriva2 { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-16vw, -8vh) scale(.95); } }
+  @keyframes deriva3 { from { transform: translate(-10vw, 0) scale(.9); } to { transform: translate(12vw, -12vh) scale(1.2); } }
+
+  .noite .b1 { background: radial-gradient(circle, rgba(88,64,214,.85) 0%, rgba(88,64,214,0) 65%); }
+  .noite .b2 { background: radial-gradient(circle, rgba(20,120,160,.75) 0%, rgba(20,120,160,0) 65%); }
+  .noite .b3 { background: radial-gradient(circle, rgba(170,60,170,.6) 0%, rgba(170,60,170,0) 65%); }
+  .manha .b1 { background: radial-gradient(circle, rgba(255,150,110,.8) 0%, rgba(255,150,110,0) 65%); }
+  .manha .b2 { background: radial-gradient(circle, rgba(70,150,255,.75) 0%, rgba(70,150,255,0) 65%); }
+  .manha .b3 { background: radial-gradient(circle, rgba(255,110,170,.55) 0%, rgba(255,110,170,0) 65%); }
+  .dia .b1 { background: radial-gradient(circle, rgba(40,140,255,.85) 0%, rgba(40,140,255,0) 65%); }
+  .dia .b2 { background: radial-gradient(circle, rgba(20,200,190,.7) 0%, rgba(20,200,190,0) 65%); }
+  .dia .b3 { background: radial-gradient(circle, rgba(255,200,80,.5) 0%, rgba(255,200,80,0) 65%); }
+  .entardecer .b1 { background: radial-gradient(circle, rgba(255,120,60,.85) 0%, rgba(255,120,60,0) 65%); }
+  .entardecer .b2 { background: radial-gradient(circle, rgba(140,60,200,.8) 0%, rgba(140,60,200,0) 65%); }
+  .entardecer .b3 { background: radial-gradient(circle, rgba(255,70,120,.6) 0%, rgba(255,70,120,0) 65%); }
+
+  .veu { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, rgba(7,10,20,.05) 0%, rgba(7,10,20,.6) 100%); }
+
+  /* Estrelas (à noite) e chuva (quando chove) */
+  .estrelas, .chuva { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; }
+  .noite .estrelas { display: block; }
+  .com-chuva .chuva { display: block; }
+  .estrela { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: .15; animation: brilho 5s ease-in-out infinite; }
+  @keyframes brilho { 0%, 100% { opacity: .1; } 50% { opacity: .8; } }
+  .gota { position: absolute; top: -15vh; width: 1px; height: 11vh; background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.35)); animation: cair 1.1s linear infinite; will-change: transform; }
+  @keyframes cair { to { transform: translateY(130vh); } }
+
+  /* Conteúdo */
+  .tela { position: relative; z-index: 1; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; height: 100%; padding: 4vh 4.5vw 3.5vh; }
+  .topo { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: flex-start; align-items: flex-start; }
+  .saudacao { font-size: 3.4vh; font-weight: 500; letter-spacing: .01em; }
+  .sub { font-size: 2.2vh; opacity: .6; margin-top: .5vh; }
+  .local { text-align: right; }
+  .chip-local { display: inline-block; font-size: 2.2vh; padding: .9vh 1.6vw; border-radius: 3vh; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
+  .atualizado { font-size: 1.8vh; opacity: .45; margin-top: .8vh; }
+
   .principal { display: -webkit-flex; display: flex; -webkit-flex: 1; flex: 1; -webkit-align-items: center; align-items: center; }
-  .relogio { -webkit-flex: 1.3; flex: 1.3; }
-  .hora { font-size: 22vh; font-weight: 200; line-height: 1; letter-spacing: -.02em; }
-  .data { font-size: 3.6vh; color: #b5b9c0; margin-top: 1.5vh; }
-  .clima { -webkit-flex: 1; flex: 1; text-align: right; }
-  .clima-linha { display: -webkit-flex; display: flex; -webkit-justify-content: flex-end; justify-content: flex-end; -webkit-align-items: center; align-items: center; }
-  .icone { font-size: 11vh; margin-right: 2vw; }
-  .temp { font-size: 14vh; font-weight: 200; line-height: 1; }
-  .desc { font-size: 3.4vh; color: #d6d9de; margin-top: 1vh; }
-  .detalhes { font-size: 2.4vh; color: #8a8f98; margin-top: 1vh; line-height: 1.5; }
-  .faixa { display: -webkit-flex; display: flex; border-top: 1px solid #23262c; padding-top: 2.5vh; margin-top: 1vh; }
-  .item { -webkit-flex: 1; flex: 1; text-align: center; }
-  .item .r { font-size: 2.2vh; color: #8a8f98; }
-  .item .i { font-size: 4vh; margin: .6vh 0; }
-  .item .t { font-size: 2.8vh; }
-  .item .c { font-size: 1.9vh; color: #5fa8e8; margin-top: .3vh; }
-  .player { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; background: #17191e; border-radius: 2vh; padding: 2vh 3vw; margin-top: 3vh; }
-  .btn { width: 9vh; height: 9vh; border-radius: 50%; border: 0; background: #262a31; color: #fff; font-size: 3.4vh; margin-right: 2vw; cursor: pointer; }
-  .btn.play { background: #f2f2f2; color: #0e0f12; width: 11vh; height: 11vh; font-size: 4.2vh; }
-  .btn:active { opacity: .6; }
+  .relogio { -webkit-flex: 1.25; flex: 1.25; }
+  .hora { font-size: 23vh; font-weight: 200; line-height: 1; letter-spacing: -.03em; }
+  .hora.entra { animation: entra .9s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(3vh); } to { opacity: 1; transform: none; } }
+  .dp { animation: pisca 2s ease-in-out infinite; }
+  @keyframes pisca { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  .data { font-size: 3.4vh; opacity: .8; margin-top: 1.4vh; }
+  .segundos { width: 62%; height: 3px; margin-top: 3vh; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .segundos div { height: 100%; background: rgba(255,255,255,.75); transform-origin: left center; transform: scaleX(0); }
+
+  .vidro { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 2.6vh; }
+  .clima { -webkit-flex: 1; flex: 1; padding: 3vh 2.5vw; }
+  .clima-linha { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; }
+  .icone { font-size: 11vh; margin-right: 2vw; display: inline-block; animation: flutua 6s ease-in-out infinite; }
+  @keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.4vh); } }
+  .temp { font-size: 13vh; font-weight: 200; line-height: 1; }
+  .desc { font-size: 3.2vh; margin-top: 1vh; }
+  .chips { margin-top: 1.6vh; }
+  .chip { display: inline-block; font-size: 2vh; padding: .7vh 1.2vw; margin: .8vh .6vw 0 0; border-radius: 2vh; background: rgba(255,255,255,.08); }
+  .chip b { font-weight: 600; }
+
+  .horas { display: -webkit-flex; display: flex; margin-top: 1.5vh; }
+  .hcard { -webkit-flex: 1; flex: 1; text-align: center; padding: 1.6vh 0; margin-right: 1vw; opacity: 0; animation: surge .7s ease-out forwards; }
+  .hcard:last-child { margin-right: 0; }
+  @keyframes surge { from { opacity: 0; transform: translateY(2vh); } to { opacity: 1; transform: none; } }
+  .hcard .r { font-size: 2vh; opacity: .6; }
+  .hcard .i { font-size: 3.8vh; margin: .5vh 0; }
+  .hcard .t { font-size: 2.7vh; }
+  .hcard .c { font-size: 1.8vh; color: #7fc4ff; margin-top: .3vh; }
+
+  .player { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; padding: 2vh 2.5vw; margin-top: 2.5vh; }
+  .btn { position: relative; width: 8.5vh; height: 8.5vh; border-radius: 50%; border: 0; background: rgba(255,255,255,.1); color: #fff; margin-right: 1.6vw; cursor: pointer; -webkit-transition: transform .15s; transition: transform .15s; }
+  .btn svg { width: 3.4vh; height: 3.4vh; fill: currentColor; vertical-align: middle; }
+  .btn:active { transform: scale(.9); }
+  .btn.play { width: 11vh; height: 11vh; background: #fff; color: #0b0f1c; }
+  .btn.play svg { width: 4.4vh; height: 4.4vh; }
+  .i-pausa, .ligado .i-play { display: none; }
+  .ligado .i-pausa { display: inline; }
+  .btn.play:after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); opacity: 0; }
+  .tocando .btn.play:after { animation: onda 2.2s ease-out infinite; }
+  @keyframes onda { from { transform: scale(1); opacity: .7; } to { transform: scale(1.55); opacity: 0; } }
+
+  .eq { display: -webkit-flex; display: flex; -webkit-align-items: flex-end; align-items: flex-end; height: 4vh; margin: 0 1.6vw 0 .6vw; }
+  .eq span { width: .6vh; height: 4vh; margin-right: .5vh; border-radius: .4vh; background: #fff; transform-origin: bottom; transform: scaleY(.18); opacity: .5; }
+  .tocando .eq span { opacity: 1; animation: barra 1s ease-in-out infinite; }
+  .tocando .eq span:nth-child(2) { animation-duration: .8s; animation-delay: -.3s; }
+  .tocando .eq span:nth-child(3) { animation-duration: 1.2s; animation-delay: -.6s; }
+  .tocando .eq span:nth-child(4) { animation-duration: .9s; animation-delay: -.2s; }
+  @keyframes barra { 0%, 100% { transform: scaleY(.2); } 50% { transform: scaleY(1); } }
+
   .radio-info { -webkit-flex: 1; flex: 1; }
-  .radio-nome { font-size: 3.4vh; }
-  .radio-status { font-size: 2.2vh; color: #8a8f98; margin-top: .5vh; }
+  .radio-nome { font-size: 3.2vh; font-weight: 500; }
+  .radio-status { font-size: 2vh; opacity: .6; margin-top: .4vh; }
   .estacoes { display: -webkit-flex; display: flex; }
-  .estacao { font-size: 2vh; color: #8a8f98; padding: 1vh 1.4vw; border-radius: 3vh; border: 1px solid #2c3037; margin-left: 1vw; }
-  .estacao.ativa { color: #0e0f12; background: #f2f2f2; border-color: #f2f2f2; }
+  .estacao { font-size: 1.9vh; padding: 1vh 1.2vw; border-radius: 3vh; border: 1px solid rgba(255,255,255,.18); margin-left: .8vw; opacity: .75; -webkit-transition: all .3s; transition: all .3s; }
+  .estacao.ativa { background: #fff; color: #0b0f1c; border-color: #fff; opacity: 1; }
+
+  /* Escurece a tela de madrugada */
+  .noturno { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 2; background: #000; opacity: 0; pointer-events: none; -webkit-transition: opacity 3s; transition: opacity 3s; }
+  .dormindo .noturno { opacity: .55; }
 </style>
 </head>
-<body>
+<body class="noite">
+<div class="ceu">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="estrelas" id="estrelas"></div>
+  <div class="chuva" id="chuva"></div>
+  <div class="veu"></div>
+</div>
+
 <div class="tela">
   <div class="topo">
-    <span id="titulo">Bem-vindos</span>
-    <span id="local">Petrópolis</span>
+    <div>
+      <div class="saudacao" id="saudacao">Olá</div>
+      <div class="sub" id="titulo">Bem-vindos</div>
+    </div>
+    <div class="local">
+      <div class="chip-local">📍 <span id="local">Petrópolis</span></div>
+      <div class="atualizado" id="atualizado"></div>
+    </div>
   </div>
 
   <div class="principal">
     <div class="relogio">
-      <div class="hora" id="hora">--:--</div>
+      <div class="hora" id="hora">--<span class="dp">:</span>--</div>
       <div class="data" id="data"></div>
+      <div class="segundos"><div id="seg"></div></div>
     </div>
-    <div class="clima">
+    <div class="clima vidro">
       <div class="clima-linha">
-        <span class="icone" id="icone"></span>
+        <span class="icone" id="icone">🌡️</span>
         <span class="temp" id="temp">--°</span>
       </div>
       <div class="desc" id="desc">Carregando clima…</div>
-      <div class="detalhes" id="detalhes"></div>
+      <div class="chips" id="chips"></div>
     </div>
   </div>
 
-  <div class="faixa" id="horas"></div>
+  <div class="horas" id="horas"></div>
 
-  <div class="player">
-    <button class="btn" id="anterior">&#9664;&#9664;</button>
-    <button class="btn play" id="tocar">&#9654;</button>
-    <button class="btn" id="proxima">&#9654;&#9654;</button>
+  <div class="player vidro" id="player">
+    <button class="btn" id="anterior"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12L18 6v12z"/></svg></button>
+    <button class="btn play" id="tocar"><svg viewBox="0 0 24 24" class="i-play"><path d="M8 5v14l11-7z"/></svg><svg viewBox="0 0 24 24" class="i-pausa"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+    <button class="btn" id="proxima"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg></button>
+    <div class="eq"><span></span><span></span><span></span><span></span></div>
     <div class="radio-info">
       <div class="radio-nome" id="radioNome"></div>
       <div class="radio-status" id="radioStatus">Toque para tocar</div>
@@ -82,6 +176,7 @@
   </div>
 </div>
 
+<div class="noturno"></div>
 <audio id="audio" preload="none"></audio>
 
 <script>
@@ -107,7 +202,11 @@
     { nome: 'Bossa Nova', curto: 'Bossa', urls: fontes('bossa') },
     { nome: 'Lounge / Downtempo', curto: 'Lounge', urls: fontes('groovesalad') },
     { nome: 'Jazz moderno', curto: 'Jazz', urls: fontes('sonicuniverse') },
-    { nome: 'Vocal suave', curto: 'Lush', urls: fontes('lush') }
+    { nome: 'Vocal suave', curto: 'Lush', urls: fontes('lush') },
+    { nome: 'Radio Paradise Mellow', curto: 'Mellow', urls: [
+      'https://stream.radioparadise.com/mellow-128',
+      'https://stream.radioparadise.com/mellow-320'
+    ] }
   ];
 
   var DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -115,6 +214,7 @@
 
   function $(id) { return document.getElementById(id); }
   function dois(n) { return n < 10 ? '0' + n : '' + n; }
+  function aleatorio(min, max) { return min + Math.random() * (max - min); }
 
   function lerParametros() {
     var q = window.location.search.replace(/^\?/, '').split('&');
@@ -129,15 +229,48 @@
     $('local').textContent = CONFIG.cidade;
   }
 
+  // Cenário: estrelas e gotas criadas uma vez só
+  function montarCenario() {
+    var html = '', i;
+    for (i = 0; i < 28; i++) {
+      html += '<div class="estrela" style="left:' + aleatorio(0, 100) + '%;top:' + aleatorio(0, 70) + '%;animation-delay:-' + aleatorio(0, 5) + 's;animation-duration:' + aleatorio(3, 7) + 's"></div>';
+    }
+    $('estrelas').innerHTML = html;
+    html = '';
+    for (i = 0; i < 36; i++) {
+      html += '<div class="gota" style="left:' + aleatorio(0, 100) + '%;animation-delay:-' + aleatorio(0, 1.2) + 's;animation-duration:' + aleatorio(.8, 1.4) + 's"></div>';
+    }
+    $('chuva').innerHTML = html;
+  }
+
+  function definirClasse(nome, ligado) {
+    var c = document.body.classList;
+    if (ligado) c.add(nome); else c.remove(nome);
+  }
+
+  function atualizarPeriodo(h) {
+    var periodo = (h >= 5 && h < 9) ? 'manha' : (h >= 9 && h < 16) ? 'dia' : (h >= 16 && h < 19) ? 'entardecer' : 'noite';
+    ['manha', 'dia', 'entardecer', 'noite'].forEach(function (p) { definirClasse(p, p === periodo); });
+    $('saudacao').textContent = (h >= 5 && h < 12) ? 'Bom dia' : (h >= 12 && h < 18) ? 'Boa tarde' : 'Boa noite';
+    definirClasse('dormindo', h >= 23 || h < 6);
+  }
+
   // Relógio
   var ultimoMinuto = -1;
   function atualizarRelogio() {
-    var d = new Date();
+    var d = new Date(), s = d.getSeconds();
+    var barra = $('seg');
+    if (s === 0) { barra.style.transition = 'none'; barra.style.transform = 'scaleX(0)'; }
+    else { barra.style.transition = 'transform 1s linear'; barra.style.transform = 'scaleX(' + (s / 59) + ')'; }
+
     if (d.getMinutes() === ultimoMinuto) return;
     ultimoMinuto = d.getMinutes();
-    $('hora').textContent = dois(d.getHours()) + ':' + dois(d.getMinutes());
+    var hora = $('hora');
+    hora.innerHTML = dois(d.getHours()) + '<span class="dp">:</span>' + dois(d.getMinutes());
+    hora.classList.remove('entra'); void hora.offsetWidth; hora.classList.add('entra');
     var dia = DIAS[d.getDay()];
     $('data').textContent = dia.charAt(0).toUpperCase() + dia.slice(1) + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+    atualizarPeriodo(d.getHours());
     // Recarrega a página às 4h para liberar memória do aparelho antigo
     if (d.getHours() === 4 && d.getMinutes() === 0) window.location.reload();
   }
@@ -154,9 +287,13 @@
     if (codigo === 61 || codigo === 80) return ['🌦️', 'Chuva fraca'];
     if (codigo === 63 || codigo === 81) return ['🌧️', 'Chuva'];
     if (codigo === 65 || codigo === 82 || codigo === 66 || codigo === 67) return ['🌧️', 'Chuva forte'];
-    if (codigo >= 71 && codigo <= 77 || codigo === 85 || codigo === 86) return ['❄️', 'Neve'];
+    if ((codigo >= 71 && codigo <= 77) || codigo === 85 || codigo === 86) return ['❄️', 'Neve'];
     if (codigo >= 95) return ['⛈️', 'Trovoadas'];
     return ['🌡️', ''];
+  }
+
+  function chovendo(codigo) {
+    return (codigo >= 51 && codigo <= 67) || (codigo >= 80 && codigo <= 82) || codigo >= 95;
   }
 
   function buscarClima() {
@@ -187,12 +324,16 @@
     $('icone').textContent = t[0];
     $('temp').textContent = Math.round(c.temperature_2m) + '°';
     $('desc').textContent = t[1];
-    $('detalhes').innerHTML =
-      'Máx ' + Math.round(j.daily.temperature_2m_max[0]) + '° · Mín ' + Math.round(j.daily.temperature_2m_min[0]) + '°<br>' +
-      'Sensação ' + Math.round(c.apparent_temperature) + '° · Umidade ' + c.relative_humidity_2m + '%';
+    $('chips').innerHTML =
+      '<span class="chip">↑ <b>' + Math.round(j.daily.temperature_2m_max[0]) + '°</b> ↓ <b>' + Math.round(j.daily.temperature_2m_min[0]) + '°</b></span>' +
+      '<span class="chip">Sensação <b>' + Math.round(c.apparent_temperature) + '°</b></span>' +
+      '<span class="chip">Umidade <b>' + c.relative_humidity_2m + '%</b></span>' +
+      '<span class="chip">Vento <b>' + Math.round(c.wind_speed_10m) + ' km/h</b></span>';
+    definirClasse('com-chuva', chovendo(c.weather_code));
+    var agora = new Date();
+    $('atualizado').textContent = 'Atualizado às ' + dois(agora.getHours()) + ':' + dois(agora.getMinutes());
 
     // Próximas horas, de 2 em 2
-    var agora = new Date();
     var chaveAgora = agora.getFullYear() + '-' + dois(agora.getMonth() + 1) + '-' + dois(agora.getDate()) + 'T' + dois(agora.getHours());
     var h = j.hourly, inicio = 0;
     for (var i = 0; i < h.time.length; i++) {
@@ -204,7 +345,7 @@
       if (idx >= h.time.length) break;
       var th = tempo(h.weather_code[idx], h.is_day[idx]);
       var chuva = h.precipitation_probability[idx];
-      html += '<div class="item"><div class="r">' + h.time[idx].substr(11, 2) + 'h</div>' +
+      html += '<div class="hcard vidro" style="animation-delay:' + (k * 0.08) + 's"><div class="r">' + h.time[idx].substr(11, 2) + 'h</div>' +
         '<div class="i">' + th[0] + '</div>' +
         '<div class="t">' + Math.round(h.temperature_2m[idx]) + '°</div>' +
         '<div class="c">' + (chuva >= 20 ? chuva + '% chuva' : '&nbsp;') + '</div></div>';
@@ -217,6 +358,7 @@
   var atual = 0;
   var fonte = 0;
   var querTocando = false;
+  var tocando = false;
   var tentativa = null;
   var vigia = null;
 
@@ -232,18 +374,22 @@
   }
 
   function status(txt) { $('radioStatus').textContent = txt; }
+  function animacaoTocando(ligado) { definirClasse('tocando', ligado); }
 
   function conectar() {
     clearTimeout(vigia);
     audio.setAttribute('src', RADIOS[atual].urls[fonte]);
     audio.load();
-    status('Conectando…');
+    tocando = false;
+    animacaoTocando(false);
+    var total = RADIOS[atual].urls.length;
+    status('Conectando…' + (total > 1 ? ' (servidor ' + (fonte + 1) + ' de ' + total + ')' : ''));
     var p = audio.play();
     if (p && p.catch) p.catch(function (e) {
       if (e && e.name === 'NotAllowedError') status('Toque em ▶ para tocar');
     });
     // Se em 12s não começar a tocar, tenta o próximo servidor
-    vigia = setTimeout(function () { if (querTocando && audio.paused) proximaFonte(); }, 12000);
+    vigia = setTimeout(function () { if (querTocando && !tocando) proximaFonte(); }, 12000);
   }
 
   function proximaFonte() {
@@ -258,12 +404,14 @@
 
   function tocar() {
     querTocando = true;
-    $('tocar').innerHTML = '&#10074;&#10074;';
+    definirClasse('ligado', true);
     conectar();
   }
 
   function pausar() {
     querTocando = false;
+    tocando = false;
+    animacaoTocando(false);
     clearTimeout(tentativa);
     clearTimeout(vigia);
     audio.pause();
@@ -271,7 +419,7 @@
     audio.removeAttribute('src');
     audio.load();
     status('Pausado');
-    $('tocar').innerHTML = '&#9654;';
+    definirClasse('ligado', false);
   }
 
   function trocar(i) {
@@ -282,8 +430,19 @@
     if (querTocando) conectar(); else status('Toque para tocar');
   }
 
-  audio.addEventListener('playing', function () { clearTimeout(vigia); status('Tocando agora'); });
-  audio.addEventListener('waiting', function () { if (querTocando) status('Carregando…'); });
+  audio.addEventListener('playing', function () {
+    tocando = true;
+    clearTimeout(vigia);
+    animacaoTocando(true);
+    status('Tocando agora');
+  });
+  audio.addEventListener('waiting', function () {
+    if (!querTocando || !tocando) return;
+    // Travou no meio da música: se não voltar em 15s, reconecta
+    status('Carregando…');
+    clearTimeout(vigia);
+    vigia = setTimeout(function () { if (querTocando && audio.readyState < 3) { tocando = false; proximaFonte(); } }, 15000);
+  });
   audio.addEventListener('error', function () {
     if (!querTocando || !audio.getAttribute('src')) return;
     proximaFonte();
@@ -299,6 +458,7 @@
 
   // Início
   lerParametros();
+  montarCenario();
   desenharEstacoes();
   atualizarRelogio();
   setInterval(atualizarRelogio, 1000);
