@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hall">
+<title>Hall</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #0e0f12; color: #f2f2f2;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+  }
+  .tela { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; height: 100%; padding: 3vh 4vw; }
+  .topo { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; color: #8a8f98; font-size: 2.6vh; letter-spacing: .05em; }
+  .principal { display: -webkit-flex; display: flex; -webkit-flex: 1; flex: 1; -webkit-align-items: center; align-items: center; }
+  .relogio { -webkit-flex: 1.3; flex: 1.3; }
+  .hora { font-size: 22vh; font-weight: 200; line-height: 1; letter-spacing: -.02em; }
+  .data { font-size: 3.6vh; color: #b5b9c0; margin-top: 1.5vh; }
+  .clima { -webkit-flex: 1; flex: 1; text-align: right; }
+  .clima-linha { display: -webkit-flex; display: flex; -webkit-justify-content: flex-end; justify-content: flex-end; -webkit-align-items: center; align-items: center; }
+  .icone { font-size: 11vh; margin-right: 2vw; }
+  .temp { font-size: 14vh; font-weight: 200; line-height: 1; }
+  .desc { font-size: 3.4vh; color: #d6d9de; margin-top: 1vh; }
+  .detalhes { font-size: 2.4vh; color: #8a8f98; margin-top: 1vh; line-height: 1.5; }
+  .faixa { display: -webkit-flex; display: flex; border-top: 1px solid #23262c; padding-top: 2.5vh; margin-top: 1vh; }
+  .item { -webkit-flex: 1; flex: 1; text-align: center; }
+  .item .r { font-size: 2.2vh; color: #8a8f98; }
+  .item .i { font-size: 4vh; margin: .6vh 0; }
+  .item .t { font-size: 2.8vh; }
+  .item .c { font-size: 1.9vh; color: #5fa8e8; margin-top: .3vh; }
+  .player { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; background: #17191e; border-radius: 2vh; padding: 2vh 3vw; margin-top: 3vh; }
+  .btn { width: 9vh; height: 9vh; border-radius: 50%; border: 0; background: #262a31; color: #fff; font-size: 3.4vh; margin-right: 2vw; cursor: pointer; }
+  .btn.play { background: #f2f2f2; color: #0e0f12; width: 11vh; height: 11vh; font-size: 4.2vh; }
+  .btn:active { opacity: .6; }
+  .radio-info { -webkit-flex: 1; flex: 1; }
+  .radio-nome { font-size: 3.4vh; }
+  .radio-status { font-size: 2.2vh; color: #8a8f98; margin-top: .5vh; }
+  .estacoes { display: -webkit-flex; display: flex; }
+  .estacao { font-size: 2vh; color: #8a8f98; padding: 1vh 1.4vw; border-radius: 3vh; border: 1px solid #2c3037; margin-left: 1vw; }
+  .estacao.ativa { color: #0e0f12; background: #f2f2f2; border-color: #f2f2f2; }
+</style>
+</head>
+<body>
+<div class="tela">
+  <div class="topo">
+    <span id="titulo">Bem-vindos</span>
+    <span id="local">Petrópolis</span>
+  </div>
+
+  <div class="principal">
+    <div class="relogio">
+      <div class="hora" id="hora">--:--</div>
+      <div class="data" id="data"></div>
+    </div>
+    <div class="clima">
+      <div class="clima-linha">
+        <span class="icone" id="icone"></span>
+        <span class="temp" id="temp">--°</span>
+      </div>
+      <div class="desc" id="desc">Carregando clima…</div>
+      <div class="detalhes" id="detalhes"></div>
+    </div>
+  </div>
+
+  <div class="faixa" id="horas"></div>
+
+  <div class="player">
+    <button class="btn" id="anterior">&#9664;&#9664;</button>
+    <button class="btn play" id="tocar">&#9654;</button>
+    <button class="btn" id="proxima">&#9654;&#9654;</button>
+    <div class="radio-info">
+      <div class="radio-nome" id="radioNome"></div>
+      <div class="radio-status" id="radioStatus">Toque para tocar</div>
+    </div>
+    <div class="estacoes" id="estacoes"></div>
+  </div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+(function () {
+  // Configuração: pode ser trocada pela URL, ex: ?lat=-22.5&lon=-43.17&cidade=Itaipava&titulo=Olá
+  var CONFIG = {
+    lat: -22.505,
+    lon: -43.1787,
+    cidade: 'Petrópolis',
+    titulo: 'Bem-vindos'
+  };
+
+  var RADIOS = [
+    { nome: 'Bossa Nova', curto: 'Bossa', url: 'https://ice1.somafm.com/bossa-128-mp3' },
+    { nome: 'Lounge / Downtempo', curto: 'Lounge', url: 'https://ice1.somafm.com/groovesalad-128-mp3' },
+    { nome: 'Jazz moderno', curto: 'Jazz', url: 'https://ice1.somafm.com/sonicuniverse-128-mp3' },
+    { nome: 'Vocal suave', curto: 'Lush', url: 'https://ice1.somafm.com/lush-128-mp3' }
+  ];
+
+  var DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+  var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+  function $(id) { return document.getElementById(id); }
+  function dois(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function lerParametros() {
+    var q = window.location.search.replace(/^\?/, '').split('&');
+    for (var i = 0; i < q.length; i++) {
+      var p = q[i].split('=');
+      if (p.length === 2 && CONFIG.hasOwnProperty(p[0])) {
+        var v = decodeURIComponent(p[1].replace(/\+/g, ' '));
+        CONFIG[p[0]] = (p[0] === 'lat' || p[0] === 'lon') ? parseFloat(v) : v;
+      }
+    }
+    $('titulo').textContent = CONFIG.titulo;
+    $('local').textContent = CONFIG.cidade;
+  }
+
+  // Relógio
+  var ultimoMinuto = -1;
+  function atualizarRelogio() {
+    var d = new Date();
+    if (d.getMinutes() === ultimoMinuto) return;
+    ultimoMinuto = d.getMinutes();
+    $('hora').textContent = dois(d.getHours()) + ':' + dois(d.getMinutes());
+    var dia = DIAS[d.getDay()];
+    $('data').textContent = dia.charAt(0).toUpperCase() + dia.slice(1) + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+    // Recarrega a página às 4h para liberar memória do aparelho antigo
+    if (d.getHours() === 4 && d.getMinutes() === 0) window.location.reload();
+  }
+
+  // Clima (Open-Meteo, sem chave)
+  function tempo(codigo, dia) {
+    var noite = dia === 0;
+    if (codigo === 0) return [noite ? '🌙' : '☀️', 'Céu limpo'];
+    if (codigo === 1) return [noite ? '🌙' : '🌤️', 'Predomínio de sol'];
+    if (codigo === 2) return [noite ? '☁️' : '⛅', 'Parcialmente nublado'];
+    if (codigo === 3) return ['☁️', 'Nublado'];
+    if (codigo === 45 || codigo === 48) return ['🌫️', 'Neblina'];
+    if (codigo >= 51 && codigo <= 57) return ['🌦️', 'Garoa'];
+    if (codigo === 61 || codigo === 80) return ['🌦️', 'Chuva fraca'];
+    if (codigo === 63 || codigo === 81) return ['🌧️', 'Chuva'];
+    if (codigo === 65 || codigo === 82 || codigo === 66 || codigo === 67) return ['🌧️', 'Chuva forte'];
+    if (codigo >= 71 && codigo <= 77 || codigo === 85 || codigo === 86) return ['❄️', 'Neve'];
+    if (codigo >= 95) return ['⛈️', 'Trovoadas'];
+    return ['🌡️', ''];
+  }
+
+  function buscarClima() {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + CONFIG.lat + '&longitude=' + CONFIG.lon +
+      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day' +
+      '&hourly=temperature_2m,precipitation_probability,weather_code,is_day' +
+      '&daily=temperature_2m_max,temperature_2m_min' +
+      '&timezone=America%2FSao_Paulo&forecast_days=2';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.timeout = 15000;
+    xhr.onload = function () {
+      if (xhr.status !== 200) return falhaClima();
+      try { mostrarClima(JSON.parse(xhr.responseText)); } catch (e) { falhaClima(); }
+    };
+    xhr.onerror = falhaClima;
+    xhr.ontimeout = falhaClima;
+    xhr.send();
+  }
+
+  function falhaClima() {
+    if ($('temp').textContent === '--°') $('desc').textContent = 'Sem conexão com o clima';
+  }
+
+  function mostrarClima(j) {
+    var c = j.current;
+    var t = tempo(c.weather_code, c.is_day);
+    $('icone').textContent = t[0];
+    $('temp').textContent = Math.round(c.temperature_2m) + '°';
+    $('desc').textContent = t[1];
+    $('detalhes').innerHTML =
+      'Máx ' + Math.round(j.daily.temperature_2m_max[0]) + '° · Mín ' + Math.round(j.daily.temperature_2m_min[0]) + '°<br>' +
+      'Sensação ' + Math.round(c.apparent_temperature) + '° · Umidade ' + c.relative_humidity_2m + '%';
+
+    // Próximas horas, de 2 em 2
+    var agora = new Date();
+    var chaveAgora = agora.getFullYear() + '-' + dois(agora.getMonth() + 1) + '-' + dois(agora.getDate()) + 'T' + dois(agora.getHours());
+    var h = j.hourly, inicio = 0;
+    for (var i = 0; i < h.time.length; i++) {
+      if (h.time[i].substr(0, 13) === chaveAgora) { inicio = i + 1; break; }
+    }
+    var html = '';
+    for (var k = 0; k < 7; k++) {
+      var idx = inicio + k * 2;
+      if (idx >= h.time.length) break;
+      var th = tempo(h.weather_code[idx], h.is_day[idx]);
+      var chuva = h.precipitation_probability[idx];
+      html += '<div class="item"><div class="r">' + h.time[idx].substr(11, 2) + 'h</div>' +
+        '<div class="i">' + th[0] + '</div>' +
+        '<div class="t">' + Math.round(h.temperature_2m[idx]) + '°</div>' +
+        '<div class="c">' + (chuva >= 20 ? chuva + '% chuva' : '&nbsp;') + '</div></div>';
+    }
+    $('horas').innerHTML = html;
+  }
+
+  // Rádio
+  var audio = $('audio');
+  var atual = 0;
+  var querTocando = false;
+  var tentativa = null;
+
+  try { var salvo = parseInt(localStorage.getItem('radio'), 10); if (salvo >= 0 && salvo < RADIOS.length) atual = salvo; } catch (e) {}
+
+  function desenharEstacoes() {
+    var html = '';
+    for (var i = 0; i < RADIOS.length; i++) {
+      html += '<span class="estacao' + (i === atual ? ' ativa' : '') + '" data-i="' + i + '">' + RADIOS[i].curto + '</span>';
+    }
+    $('estacoes').innerHTML = html;
+    $('radioNome').textContent = RADIOS[atual].nome;
+  }
+
+  function status(txt) { $('radioStatus').textContent = txt; }
+
+  function tocar() {
+    querTocando = true;
+    if (audio.getAttribute('src') !== RADIOS[atual].url) {
+      audio.setAttribute('src', RADIOS[atual].url);
+      audio.load();
+    }
+    status('Conectando…');
+    var p = audio.play();
+    if (p && p.catch) p.catch(function () { status('Toque em ▶ para tocar'); });
+    $('tocar').innerHTML = '&#10074;&#10074;';
+  }
+
+  function pausar() {
+    querTocando = false;
+    clearTimeout(tentativa);
+    audio.pause();
+    // Remove a fonte para não acumular atraso no stream ao vivo
+    audio.removeAttribute('src');
+    audio.load();
+    status('Pausado');
+    $('tocar').innerHTML = '&#9654;';
+  }
+
+  function trocar(i) {
+    atual = (i + RADIOS.length) % RADIOS.length;
+    try { localStorage.setItem('radio', atual); } catch (e) {}
+    desenharEstacoes();
+    if (querTocando) { audio.removeAttribute('src'); tocar(); } else status('Toque para tocar');
+  }
+
+  audio.addEventListener('playing', function () { status('Tocando agora'); });
+  audio.addEventListener('waiting', function () { if (querTocando) status('Carregando…'); });
+  audio.addEventListener('error', function () {
+    if (!querTocando) return;
+    status('Falha na conexão, tentando de novo…');
+    clearTimeout(tentativa);
+    tentativa = setTimeout(function () { audio.removeAttribute('src'); tocar(); }, 5000);
+  });
+
+  $('tocar').addEventListener('click', function () { querTocando ? pausar() : tocar(); });
+  $('anterior').addEventListener('click', function () { trocar(atual - 1); });
+  $('proxima').addEventListener('click', function () { trocar(atual + 1); });
+  $('estacoes').addEventListener('click', function (e) {
+    var i = e.target.getAttribute('data-i');
+    if (i !== null) trocar(parseInt(i, 10));
+  });
+
+  // Início
+  lerParametros();
+  desenharEstacoes();
+  atualizarRelogio();
+  setInterval(atualizarRelogio, 1000);
+  buscarClima();
+  setInterval(buscarClima, 15 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
